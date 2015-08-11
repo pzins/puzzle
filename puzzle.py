@@ -2,9 +2,23 @@ import pygame
 from pygame.locals import *
 from random import randint
 
+def tupleValide(t):
+    return t[0] >= 0 and t[0] <= 3 and t[1] >= 0 and t[1] <= 3
+
+def getVoisins(black):
+    res = []
+    tmp = []
+    tmp.append(black[0]-1, black[1])
+    tmp.append(black[0]+1, black[1])
+    tmp.append(black[0], black[1]-1)
+    tmp.append(black[0], black[1]+1)
+    for i in range(4):
+        if tupleValide(tmp[i]):
+            res.append(tmp[i])
+    return res
+
+
 pygame.init()
-
-
 fenetre = pygame.display.set_mode((584, 584))
 
 
@@ -12,7 +26,6 @@ squares = []
 positions = []
 cpt = 0
 pos_dispo = [(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2),(1,3),(2,0),(2,1),(2,2),(2,3),(3,0),(3,1),(3,2),(3,3)]
-
 
 for i in range(4):
     for j in range(4):
@@ -25,11 +38,9 @@ for i in range(4):
             fenetre.blit(squares[cpt], positions[cpt])
             cpt += 1
 
-print(cpt)
+black = pos_dispo
 
                        
-
-
 pygame.display.flip()
 
 continuer = 1
