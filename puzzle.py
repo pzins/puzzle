@@ -1,24 +1,34 @@
 import pygame
+import sys
 from pygame.locals import *
 from random import randint
 
 class Tile:
     """ carreau du puzzle """
-    def __init__(self, num, coord, img):
+    def __init__(self,name, num, coord, img):
+        self.name = name
         self.coo = coord
         self.image = img
+        self.image.set_alpha(100)
         self.numero = num
-        self.real_coo = (self.coo[0]*146, self.coo[1]*146)
+        self.update_coo()
         
+    def update_coo(self):
+        """update les vraies coo"""
+        self.real_coo = (self.coo[0]*146, self.coo[1]*146)
+        if int(self.name[1]) == self.coo[0] and int(self.name[0]) == self.coo[1]:
+            self.image.set_alpha(255)
+        else:
+            self.image.set_alpha(100)
     
     
-    
-
 def tupleValide(t):
+    """test si un tuple a des coo coherentes avec la grille"""
     return t[0] >= 0 and t[0] <= 3 and t[1] >= 0 and t[1] <= 3
 
 def getVoisins(black):
-    print(black)
+    """return list des carreaux voisins"""
+    black = black[0]
     res = []
     tmp = []
     tmp.append((black[0]-1, black[1]))
@@ -31,70 +41,53 @@ def getVoisins(black):
     return res
 
 def isOnTile(coo, mouse):
+    """test si le clic est bien sur le carreaux de coordonnees coo """
     return coo[0] * 146 <= mouse[0] and coo[0] * 146 + 145 >= mouse[0] and coo[1] * 146 <= mouse[1] and coo[1] * 146 + 145 >= mouse[1]
 
 def update(tiles, fen):
+    """update l'affichage"""
     for i in tiles:
         fen.blit(i.image, i.real_coo)
 
-def exchangePos(black, sq, pos, coo, coo_tuple):
-    print("OL: ",coo," OL")
-    a = coo.index(coo_tuple)
-    coo[a], black = black, coo[a]
-    pos[a] = (coo[a][0] * 146, coo[a][1] * 146)
+def exchangePos(black, tiles, voisin):
+    """echange un carreau voisin avec le carreau noir"""
+    for i in tiles:
+        if i.coo == voisin:
+            i.coo, black[0] = black[0], i.coo
+            i.update_coo()
+            return 0   
 
-    
-    
-
-
-    
 pygame.init()
-fenetre = pygame.display.set_mode((584, 584))
+fenetre = pygame.display.set_mode((584, 584)) #fenetre du jeu
+pos_dispo = [(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2),(1,3),(2,0),(2,1),(2,2),(2,3),(3,0),(3,1),(3,2),(3,3)] #coo des positions dispo grille
+tiles = [] #list contenant les carreaux
+cpt = 0 #compteur
 
-squares = []
-positions = []
-coo = []
-cpt = 0
-pos_dispo = [(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2),(1,3),(2,0),(2,1),(2,2),(2,3),(3,0),(3,1),(3,2),(3,3)]
-
-tiles = []
-
+#initialisation
 for i in range(4):
     for j in range(4):
         if j != 3 or i != 3:
             choice = randint(0,len(pos_dispo)-1)
-            print(pos_dispo[choice])
-            t = Tile(cpt, pos_dispo[choice],pygame.image.load("img/ol"+str(i)+str(j)+".jpg").convert())
+            t = Tile(str(i)+str(j),cpt, pos_dispo[choice],pygame.image.load("img/ol"+str(i)+str(j)+".jpg").convert())
             tiles.append(t)
-#            squares.append(pygame.image.load("img/ol"+str(i)+str(j)+".jpg").convert())
- #           positions.append(squares[cpt].get_rect())
-  #          choice = randint(0,len(pos_dispo)-1)
-   #         positions[cpt] = positions[cpt].move(pos_dispo[choice][0] * 146, pos_dispo[choice][1] * 146)
-    #        coo.append(pos_dispo[choice])
             del pos_dispo[choice]
-#            update(squares, positions, fenetre)
-#            fenetre.blit(t.image, t.real_coo)
             cpt += 1
+
 update(tiles, fenetre)
-black = pos_dispo[0]
+black = pos_dispo #position de la case vide, on utilise une liste pour passage par reference
 
-                       
-pygame.display.flip()
+pygame.display.flip() #update the content of the entire display
 
-continuer = 1
-while continuer:
+
+while 1:
     for event in pygame.event.get():
         if event.type == QUIT:
-            continuer = 0
-            if event.type == MOUSEBUTTONDOWN and event.button == 1:
-                tile = getVoisins(black)
-                for i in tile:
-                    if isOnTile(i, event.pos):
-                        pygame.display.flip()
-                        print('ol')
-                        """
-                        exchangePos(black, squares, positions, coo, i)
-                        fenetre.fill((0,0,0))
-                        update(squares, positions, fenetre)
-                        """
-
+            sys.exit()
+        if event.type == MOUSEBUTTONDOWN and event.button == 1:
+            voisins = getVoisins(black)
+            for i in voisins:
+                if isOnTile(i, event.pos):
+                    exchangePos(black, tiles, i)
+                    fenetre.fill((0,0,0))
+                    update(tiles, fenetre)
+                    pygame.display.flip()
