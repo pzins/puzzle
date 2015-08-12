@@ -91,3 +91,5 @@ while 1:
                     fenetre.fill((0,0,0))
                     update(tiles, fenetre)
                     pygame.display.flip()
+    pygame.time.wait(200)
+    
